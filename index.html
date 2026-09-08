@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Multi HTML Viewer</title>
+  <style>
+    body { font-family: sans-serif; margin: 20px; }
+    #tabs { margin-bottom: 10px; }
+    button { margin-right: 5px; }
+    iframe { width: 100%; height: 80vh; border: 1px solid #ccc; }
+  </style>
+</head>
+<body>
+  <h2>📂 Multi HTML File Viewer</h2>
+  <input type="file" id="fileInput" accept=".html,.htm" multiple>
+  <div id="tabs"></div>
+  <iframe id="viewer"></iframe>
+
+  <script>
+    const input = document.getElementById('fileInput');
+    const tabs = document.getElementById('tabs');
+    const viewer = document.getElementById('viewer');
+    let files = [];
+
+    input.addEventListener('change', () => {
+      files = Array.from(input.files);
+      tabs.innerHTML = '';
+      files.forEach((file, index) => {
+        const btn = document.createElement('button');
+        btn.textContent = file.name;
+        btn.addEventListener('click', () => showFile(index));
+        tabs.appendChild(btn);
+      });
+      if (files.length > 0) showFile(0);
+    });
+
+    function showFile(index) {
+      const reader = new FileReader();
+      reader.onload = e => {
+        viewer.srcdoc = e.target.result;
+      };
+      reader.readAsText(files[index]);
+    }
+  </script>
+
+</body>
+</html>
