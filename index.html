@@ -1,48 +1,976 @@
+```html
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Multi HTML Viewer</title>
-  <style>
-    body { font-family: sans-serif; margin: 20px; }
-    #tabs { margin-bottom: 10px; }
-    button { margin-right: 5px; }
-    iframe { width: 100%; height: 80vh; border: 1px solid #ccc; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Multi HTML File Viewer</title>
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+:root {
+  --bg: #0b1020;
+  --panel: #121a2e;
+  --panel-2: #18223a;
+  --border: #293552;
+  --text: #f4f7ff;
+  --muted: #91a0bd;
+  --accent: #6c7cff;
+  --accent-2: #8d6cff;
+  --danger: #ff5f6d;
+  --shadow: 0 20px 60px rgba(0,0,0,.35);
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top left, rgba(108,124,255,.16), transparent 35%),
+    radial-gradient(circle at top right, rgba(141,108,255,.12), transparent 30%),
+    var(--bg);
+  color: var(--text);
+  font-family: Inter, Arial, sans-serif;
+}
+
+.app {
+  width: min(1500px, 100%);
+  margin: auto;
+  padding: 24px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 22px;
+}
+
+.logo-area h1 {
+  margin: 0;
+  font-size: clamp(24px, 4vw, 36px);
+}
+
+.logo-area p {
+  margin: 7px 0 0;
+  color: var(--muted);
+}
+
+.badge {
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: #b9c4ff;
+  background: rgba(108,124,255,.08);
+  font-size: 13px;
+}
+
+.drop-zone {
+  position: relative;
+  border: 2px dashed #3b4b76;
+  border-radius: 20px;
+  padding: 38px 20px;
+  text-align: center;
+  background: rgba(18,26,46,.75);
+  transition: .2s ease;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+}
+
+.drop-zone:hover,
+.drop-zone.dragover {
+  border-color: var(--accent);
+  background: rgba(108,124,255,.09);
+  transform: translateY(-2px);
+}
+
+.upload-icon {
+  font-size: 46px;
+  margin-bottom: 10px;
+}
+
+.drop-zone h2 {
+  margin: 5px 0;
+}
+
+.drop-zone p {
+  color: var(--muted);
+  margin: 8px 0 18px;
+}
+
+.file-input {
+  display: none;
+}
+
+.btn {
+  border: 0;
+  border-radius: 10px;
+  padding: 11px 16px;
+  font-weight: 700;
+  cursor: pointer;
+  color: white;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  transition: .2s ease;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.08);
+}
+
+.btn.secondary {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+.btn.danger {
+  background: rgba(255,95,109,.12);
+  border: 1px solid rgba(255,95,109,.35);
+  color: #ff9aa4;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 20px 0 12px;
+  flex-wrap: wrap;
+}
+
+.toolbar-left,
+.toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.file-count {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.viewer {
+  min-height: 600px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: var(--shadow);
+}
+
+.tabs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+}
+
+.tabs::-webkit-scrollbar {
+  height: 5px;
+}
+
+.tabs::-webkit-scrollbar-thumb {
+  background: #354364;
+  border-radius: 20px;
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 260px;
+  padding: 10px 12px;
+  border-radius: 9px;
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.tab:hover {
+  background: var(--panel-2);
+  color: var(--text);
+}
+
+.tab.active {
+  color: white;
+  background: linear-gradient(135deg, rgba(108,124,255,.24), rgba(141,108,255,.16));
+  border-color: #44558a;
+}
+
+.tab-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tab-close {
+  opacity: .65;
+  font-size: 16px;
+  line-height: 1;
+}
+
+.tab-close:hover {
+  opacity: 1;
+  color: #ff7d89;
+}
+
+.preview-header {
+  height: 48px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 0 12px;
+  background: #f5f7fb;
+  border-bottom: 1px solid #dce1eb;
+  color: #20283b;
+}
+
+.file-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.file-title {
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.file-size {
+  color: #75809a;
+  font-size: 12px;
+}
+
+.preview-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.small-btn {
+  border: 1px solid #ccd3e0;
+  background: white;
+  color: #29344b;
+  border-radius: 7px;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.small-btn:hover {
+  background: #edf1f7;
+}
+
+.zoom-value {
+  min-width: 52px;
+  text-align: center;
+  font-size: 12px;
+  color: #64708a;
+}
+
+.preview-wrap {
+  position: relative;
+  height: calc(100vh - 360px);
+  min-height: 500px;
+  overflow: auto;
+  background: white;
+}
+
+.preview-frame {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  transform-origin: top left;
+}
+
+.empty-state {
+  height: 100%;
+  min-height: 500px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: #71809e;
+  padding: 30px;
+}
+
+.empty-state div {
+  max-width: 480px;
+}
+
+.empty-icon {
+  font-size: 60px;
+  margin-bottom: 10px;
+}
+
+.loading {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,.82);
+  color: #34405a;
+  font-weight: 700;
+}
+
+.loading.show {
+  display: flex;
+}
+
+.spinner {
+  width: 28px;
+  height: 28px;
+  margin-right: 10px;
+  border: 3px solid #dce2ef;
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.error {
+  display: none;
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 30px;
+  background: white;
+  color: #d83c4a;
+}
+
+.error.show {
+  display: flex;
+}
+
+.error-box {
+  max-width: 500px;
+}
+
+.fullscreen {
+  position: fixed !important;
+  inset: 0;
+  z-index: 9999;
+  margin: 0;
+  border-radius: 0;
+  background: white;
+}
+
+.fullscreen .preview-wrap {
+  height: calc(100vh - 48px);
+}
+
+.footer {
+  padding: 18px 0 4px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+@media (max-width: 700px) {
+  .app {
+    padding: 14px;
+  }
+
+  .header {
+    align-items: flex-start;
+  }
+
+  .badge {
+    display: none;
+  }
+
+  .drop-zone {
+    padding: 28px 14px;
+  }
+
+  .viewer {
+    min-height: 500px;
+  }
+
+  .preview-wrap {
+    min-height: 420px;
+    height: 65vh;
+  }
+
+  .preview-header {
+    height: auto;
+    padding: 10px;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .preview-controls {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
+</style>
 </head>
+
 <body>
-  <h2>📂 Multi HTML File Viewer</h2>
-  <input type="file" id="fileInput" accept=".html,.htm" multiple>
-  <div id="tabs"></div>
-  <iframe id="viewer"></iframe>
 
-  <script>
-    const input = document.getElementById('fileInput');
-    const tabs = document.getElementById('tabs');
-    const viewer = document.getElementById('viewer');
-    let files = [];
+<div class="app">
 
-    input.addEventListener('change', () => {
-      files = Array.from(input.files);
-      tabs.innerHTML = '';
-      files.forEach((file, index) => {
-        const btn = document.createElement('button');
-        btn.textContent = file.name;
-        btn.addEventListener('click', () => showFile(index));
-        tabs.appendChild(btn);
-      });
-      if (files.length > 0) showFile(0);
+  <header class="header">
+    <div class="logo-area">
+      <h1>📄 Multi HTML File Viewer</h1>
+      <p>Open and preview multiple HTML files directly in your browser.</p>
+    </div>
+
+    <div class="badge">
+      ⚡ Local Preview
+    </div>
+  </header>
+
+  <section
+    class="drop-zone"
+    id="dropZone"
+    tabindex="0"
+  >
+    <div class="upload-icon">📂</div>
+
+    <h2>Drop HTML files here</h2>
+
+    <p>
+      Drag & drop your .html / .htm files here,
+      or choose files from your device.
+    </p>
+
+    <label class="btn" for="fileInput">
+      Choose HTML Files
+    </label>
+
+    <input
+      id="fileInput"
+      class="file-input"
+      type="file"
+      accept=".html,.htm,text/html"
+      multiple
+    >
+  </section>
+
+  <div class="toolbar">
+
+    <div class="toolbar-left">
+      <span class="file-count" id="fileCount">
+        No files selected
+      </span>
+
+      <button
+        class="btn secondary"
+        id="addMoreBtn"
+        type="button"
+      >
+        ＋ Add More
+      </button>
+    </div>
+
+    <div class="toolbar-right">
+
+      <button
+        class="btn danger"
+        id="clearBtn"
+        type="button"
+      >
+        Clear All
+      </button>
+
+    </div>
+
+  </div>
+
+  <section class="viewer" id="viewer">
+
+    <div class="tabs" id="tabs"></div>
+
+    <div class="preview-header">
+
+      <div class="file-info">
+        <span>🌐</span>
+
+        <div>
+          <div class="file-title" id="fileTitle">
+            No file selected
+          </div>
+
+          <div class="file-size" id="fileSize">
+            —
+          </div>
+        </div>
+      </div>
+
+      <div class="preview-controls">
+
+        <button
+          class="small-btn"
+          id="zoomOut"
+          type="button"
+          title="Zoom out"
+        >
+          −
+        </button>
+
+        <span
+          class="zoom-value"
+          id="zoomValue"
+        >
+          100%
+        </span>
+
+        <button
+          class="small-btn"
+          id="zoomIn"
+          type="button"
+          title="Zoom in"
+        >
+          ＋
+        </button>
+
+        <button
+          class="small-btn"
+          id="resetZoom"
+          type="button"
+        >
+          Reset
+        </button>
+
+        <button
+          class="small-btn"
+          id="fullscreenBtn"
+          type="button"
+        >
+          ⛶ Fullscreen
+        </button>
+
+      </div>
+    </div>
+
+    <div class="preview-wrap" id="previewWrap">
+
+      <div class="empty-state" id="emptyState">
+        <div>
+          <div class="empty-icon">🖥️</div>
+
+          <h2>Ready to Preview</h2>
+
+          <p>
+            Select one or more HTML files to start viewing them.
+            Everything is processed locally in your browser.
+          </p>
+        </div>
+      </div>
+
+      <div class="loading" id="loading">
+        <div class="spinner"></div>
+        Loading preview...
+      </div>
+
+      <div class="error" id="error">
+        <div class="error-box">
+          <h2>⚠️ Preview Error</h2>
+          <p id="errorMessage">
+            Unable to display this HTML file.
+          </p>
+        </div>
+      </div>
+
+      <iframe
+        id="previewFrame"
+        class="preview-frame"
+        title="HTML Preview"
+        sandbox="allow-scripts allow-forms allow-modals allow-popups"
+        style="display:none;"
+      ></iframe>
+
+    </div>
+
+  </section>
+
+  <div class="footer">
+    Multi HTML File Viewer · Runs entirely in your browser
+  </div>
+
+</div>
+
+<script>
+"use strict";
+
+const fileInput = document.getElementById("fileInput");
+const addMoreBtn = document.getElementById("addMoreBtn");
+const clearBtn = document.getElementById("clearBtn");
+const dropZone = document.getElementById("dropZone");
+
+const tabs = document.getElementById("tabs");
+const fileCount = document.getElementById("fileCount");
+
+const fileTitle = document.getElementById("fileTitle");
+const fileSize = document.getElementById("fileSize");
+
+const previewFrame = document.getElementById("previewFrame");
+const previewWrap = document.getElementById("previewWrap");
+
+const emptyState = document.getElementById("emptyState");
+const loading = document.getElementById("loading");
+
+const error = document.getElementById("error");
+const errorMessage = document.getElementById("errorMessage");
+
+const zoomOut = document.getElementById("zoomOut");
+const zoomIn = document.getElementById("zoomIn");
+const resetZoom = document.getElementById("resetZoom");
+const zoomValue = document.getElementById("zoomValue");
+const fullscreenBtn = document.getElementById("fullscreenBtn");
+
+let files = [];
+let activeIndex = -1;
+let zoom = 100;
+
+function formatBytes(bytes) {
+  if (!Number.isFinite(bytes) || bytes < 0) {
+    return "—";
+  }
+
+  if (bytes === 0) {
+    return "0 Bytes";
+  }
+
+  const units = ["Bytes", "KB", "MB", "GB"];
+  const i = Math.min(
+    Math.floor(Math.log(bytes) / Math.log(1024)),
+    units.length - 1
+  );
+
+  return `${(bytes / Math.pow(1024, i)).toFixed(i === 0 ? 0 : 2)} ${units[i]}`;
+}
+
+function isHTMLFile(file) {
+  return /\.(html?|HTML?)$/.test(file.name);
+}
+
+function addFiles(fileList) {
+  const incoming = Array.from(fileList || [])
+    .filter(isHTMLFile);
+
+  if (!incoming.length) {
+    showError(
+      "Please select valid .html or .htm files."
+    );
+    return;
+  }
+
+  const existingKeys = new Set(
+    files.map(file => `${file.name}-${file.size}-${file.lastModified}`)
+  );
+
+  incoming.forEach(file => {
+    const key = `${file.name}-${file.size}-${file.lastModified}`;
+
+    if (!existingKeys.has(key)) {
+      files.push(file);
+      existingKeys.add(key);
+    }
+  });
+
+  if (activeIndex === -1 && files.length) {
+    activeIndex = 0;
+  }
+
+  renderTabs();
+  updateCount();
+
+  if (activeIndex >= 0) {
+    showFile(activeIndex);
+  }
+}
+
+function removeFile(index) {
+  if (index < 0 || index >= files.length) {
+    return;
+  }
+
+  files.splice(index, 1);
+
+  if (!files.length) {
+    activeIndex = -1;
+    resetViewer();
+    renderTabs();
+    updateCount();
+    return;
+  }
+
+  if (activeIndex === index) {
+    activeIndex = Math.min(index, files.length - 1);
+    showFile(activeIndex);
+  } else if (index < activeIndex) {
+    activeIndex--;
+  }
+
+  renderTabs();
+  updateCount();
+}
+
+function clearAll() {
+  files = [];
+  activeIndex = -1;
+
+  fileInput.value = "";
+
+  resetViewer();
+  renderTabs();
+  updateCount();
+}
+
+function renderTabs() {
+  tabs.innerHTML = "";
+
+  files.forEach((file, index) => {
+    const tab = document.createElement("button");
+
+    tab.className =
+      "tab" +
+      (index === activeIndex ? " active" : "");
+
+    tab.type = "button";
+    tab.title = file.name;
+
+    const name = document.createElement("span");
+    name.className = "tab-name";
+    name.textContent = file.name;
+
+    const close = document.createElement("span");
+    close.className = "tab-close";
+    close.textContent = "×";
+    close.title = "Remove file";
+
+    close.addEventListener("click", event => {
+      event.stopPropagation();
+      removeFile(index);
     });
 
-    function showFile(index) {
-      const reader = new FileReader();
-      reader.onload = e => {
-        viewer.srcdoc = e.target.result;
+    tab.appendChild(name);
+    tab.appendChild(close);
+
+    tab.addEventListener("click", () => {
+      activeIndex = index;
+      renderTabs();
+      showFile(index);
+    });
+
+    tabs.appendChild(tab);
+  });
+}
+
+function updateCount() {
+  if (!files.length) {
+    fileCount.textContent = "No files selected";
+    return;
+  }
+
+  fileCount.textContent =
+    `${files.length} file${files.length === 1 ? "" : "s"} selected`;
+}
+
+function showFile(index) {
+  if (!files[index]) {
+    return;
+  }
+
+  activeIndex = index;
+
+  const file = files[index];
+
+  fileTitle.textContent = file.name;
+  fileSize.textContent =
+    `${formatBytes(file.size)} · HTML`;
+
+  emptyState.style.display = "none";
+  error.classList.remove("show");
+
+  loading.classList.add("show");
+  previewFrame.style.display = "none";
+
+  const reader = new FileReader();
+
+  reader.onload = event => {
+    try {
+      const html = String(event.target.result || "");
+
+      previewFrame.srcdoc = html;
+
+      previewFrame.onload = () => {
+        loading.classList.remove("show");
+        previewFrame.style.display = "block";
+        applyZoom();
       };
-      reader.readAsText(files[index]);
+
+      previewFrame.onerror = () => {
+        showError(
+          "The selected HTML file could not be rendered."
+        );
+      };
+
+    } catch (err) {
+      showError(
+        "An unexpected error occurred while rendering the file."
+      );
     }
-  </script>
+  };
+
+  reader.onerror = () => {
+    showError(
+      "The browser could not read this file."
+    );
+  };
+
+  reader.readAsText(file);
+}
+
+function resetViewer() {
+  fileTitle.textContent = "No file selected";
+  fileSize.textContent = "—";
+
+  previewFrame.srcdoc = "";
+  previewFrame.style.display = "none";
+
+  emptyState.style.display = "flex";
+  loading.classList.remove("show");
+  error.classList.remove("show");
+
+  zoom = 100;
+  applyZoom();
+}
+
+function showError(message) {
+  loading.classList.remove("show");
+  previewFrame.style.display = "none";
+  emptyState.style.display = "none";
+
+  errorMessage.textContent = message;
+  error.classList.add("show");
+}
+
+function applyZoom() {
+  zoom = Math.max(50, Math.min(200, zoom));
+
+  zoomValue.textContent = `${zoom}%`;
+
+  if (zoom === 100) {
+    previewFrame.style.transform = "none";
+    previewFrame.style.width = "100%";
+    previewFrame.style.height = "100%";
+  } else {
+    previewFrame.style.transform = `scale(${zoom / 100})`;
+    previewFrame.style.width = `${10000 / zoom}%`;
+    previewFrame.style.height = `${10000 / zoom}%`;
+  }
+}
+
+function enterFullscreen() {
+  const viewer = document.getElementById("viewer");
+
+  if (!document.fullscreenElement) {
+    if (viewer.requestFullscreen) {
+      viewer.requestFullscreen();
+    } else {
+      viewer.classList.add("fullscreen");
+    }
+  } else {
+    document.exitFullscreen();
+  }
+}
+
+fileInput.addEventListener("change", event => {
+  addFiles(event.target.files);
+});
+
+addMoreBtn.addEventListener("click", () => {
+  fileInput.click();
+});
+
+clearBtn.addEventListener("click", clearAll);
+
+dropZone.addEventListener("dragover", event => {
+  event.preventDefault();
+  dropZone.classList.add("dragover");
+});
+
+dropZone.addEventListener("dragleave", () => {
+  dropZone.classList.remove("dragover");
+});
+
+dropZone.addEventListener("drop", event => {
+  event.preventDefault();
+  dropZone.classList.remove("dragover");
+
+  addFiles(event.dataTransfer.files);
+});
+
+dropZone.addEventListener("keydown", event => {
+  if (event.key === "Enter" || event.key === " ") {
+    event.preventDefault();
+    fileInput.click();
+  }
+});
+
+zoomOut.addEventListener("click", () => {
+  zoom -= 10;
+  applyZoom();
+});
+
+zoomIn.addEventListener("click", () => {
+  zoom += 10;
+  applyZoom();
+});
+
+resetZoom.addEventListener("click", () => {
+  zoom = 100;
+  applyZoom();
+});
+
+fullscreenBtn.addEventListener("click", enterFullscreen);
+
+document.addEventListener("fullscreenchange", () => {
+  if (document.fullscreenElement) {
+    fullscreenBtn.textContent = "✕ Exit Fullscreen";
+  } else {
+    fullscreenBtn.textContent = "⛶ Fullscreen";
+  }
+});
+
+document.addEventListener("keydown", event => {
+  if (event.key === "Escape" && document.fullscreenElement) {
+    document.exitFullscreen();
+  }
+});
+
+window.addEventListener("error", event => {
+  console.error("Application error:", event.error);
+});
+</script>
 
 </body>
 </html>
+```
