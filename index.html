@@ -1,976 +1,370 @@
-```html
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Multi HTML File Viewer</title>
-
-<style>
-* {
-  box-sizing: border-box;
-}
-
-:root {
-  --bg: #0b1020;
-  --panel: #121a2e;
-  --panel-2: #18223a;
-  --border: #293552;
-  --text: #f4f7ff;
-  --muted: #91a0bd;
-  --accent: #6c7cff;
-  --accent-2: #8d6cff;
-  --danger: #ff5f6d;
-  --shadow: 0 20px 60px rgba(0,0,0,.35);
-}
-
-body {
-  margin: 0;
-  min-height: 100vh;
-  background:
-    radial-gradient(circle at top left, rgba(108,124,255,.16), transparent 35%),
-    radial-gradient(circle at top right, rgba(141,108,255,.12), transparent 30%),
-    var(--bg);
-  color: var(--text);
-  font-family: Inter, Arial, sans-serif;
-}
-
-.app {
-  width: min(1500px, 100%);
-  margin: auto;
-  padding: 24px;
-}
-
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 20px;
-  margin-bottom: 22px;
-}
-
-.logo-area h1 {
-  margin: 0;
-  font-size: clamp(24px, 4vw, 36px);
-}
-
-.logo-area p {
-  margin: 7px 0 0;
-  color: var(--muted);
-}
-
-.badge {
-  padding: 8px 12px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  color: #b9c4ff;
-  background: rgba(108,124,255,.08);
-  font-size: 13px;
-}
-
-.drop-zone {
-  position: relative;
-  border: 2px dashed #3b4b76;
-  border-radius: 20px;
-  padding: 38px 20px;
-  text-align: center;
-  background: rgba(18,26,46,.75);
-  transition: .2s ease;
-  cursor: pointer;
-  box-shadow: var(--shadow);
-}
-
-.drop-zone:hover,
-.drop-zone.dragover {
-  border-color: var(--accent);
-  background: rgba(108,124,255,.09);
-  transform: translateY(-2px);
-}
-
-.upload-icon {
-  font-size: 46px;
-  margin-bottom: 10px;
-}
-
-.drop-zone h2 {
-  margin: 5px 0;
-}
-
-.drop-zone p {
-  color: var(--muted);
-  margin: 8px 0 18px;
-}
-
-.file-input {
-  display: none;
-}
-
-.btn {
-  border: 0;
-  border-radius: 10px;
-  padding: 11px 16px;
-  font-weight: 700;
-  cursor: pointer;
-  color: white;
-  background: linear-gradient(135deg, var(--accent), var(--accent-2));
-  transition: .2s ease;
-}
-
-.btn:hover {
-  transform: translateY(-1px);
-  filter: brightness(1.08);
-}
-
-.btn.secondary {
-  background: var(--panel-2);
-  border: 1px solid var(--border);
-  color: var(--text);
-}
-
-.btn.danger {
-  background: rgba(255,95,109,.12);
-  border: 1px solid rgba(255,95,109,.35);
-  color: #ff9aa4;
-}
-
-.toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin: 20px 0 12px;
-  flex-wrap: wrap;
-}
-
-.toolbar-left,
-.toolbar-right {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.file-count {
-  color: var(--muted);
-  font-size: 14px;
-}
-
-.viewer {
-  min-height: 600px;
-  border: 1px solid var(--border);
-  border-radius: 18px;
-  overflow: hidden;
-  background: #fff;
-  box-shadow: var(--shadow);
-}
-
-.tabs {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px;
-  background: var(--panel);
-  border-bottom: 1px solid var(--border);
-  overflow-x: auto;
-}
-
-.tabs::-webkit-scrollbar {
-  height: 5px;
-}
-
-.tabs::-webkit-scrollbar-thumb {
-  background: #354364;
-  border-radius: 20px;
-}
-
-.tab {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  max-width: 260px;
-  padding: 10px 12px;
-  border-radius: 9px;
-  color: var(--muted);
-  background: transparent;
-  border: 1px solid transparent;
-  cursor: pointer;
-  white-space: nowrap;
-}
-
-.tab:hover {
-  background: var(--panel-2);
-  color: var(--text);
-}
-
-.tab.active {
-  color: white;
-  background: linear-gradient(135deg, rgba(108,124,255,.24), rgba(141,108,255,.16));
-  border-color: #44558a;
-}
-
-.tab-name {
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.tab-close {
-  opacity: .65;
-  font-size: 16px;
-  line-height: 1;
-}
-
-.tab-close:hover {
-  opacity: 1;
-  color: #ff7d89;
-}
-
-.preview-header {
-  height: 48px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  padding: 0 12px;
-  background: #f5f7fb;
-  border-bottom: 1px solid #dce1eb;
-  color: #20283b;
-}
-
-.file-info {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-width: 0;
-}
-
-.file-title {
-  font-weight: 700;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.file-size {
-  color: #75809a;
-  font-size: 12px;
-}
-
-.preview-controls {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.small-btn {
-  border: 1px solid #ccd3e0;
-  background: white;
-  color: #29344b;
-  border-radius: 7px;
-  padding: 6px 10px;
-  cursor: pointer;
-  font-weight: 700;
-}
-
-.small-btn:hover {
-  background: #edf1f7;
-}
-
-.zoom-value {
-  min-width: 52px;
-  text-align: center;
-  font-size: 12px;
-  color: #64708a;
-}
-
-.preview-wrap {
-  position: relative;
-  height: calc(100vh - 360px);
-  min-height: 500px;
-  overflow: auto;
-  background: white;
-}
-
-.preview-frame {
-  display: block;
-  width: 100%;
-  height: 100%;
-  border: 0;
-  transform-origin: top left;
-}
-
-.empty-state {
-  height: 100%;
-  min-height: 500px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  color: #71809e;
-  padding: 30px;
-}
-
-.empty-state div {
-  max-width: 480px;
-}
-
-.empty-icon {
-  font-size: 60px;
-  margin-bottom: 10px;
-}
-
-.loading {
-  position: absolute;
-  inset: 0;
-  z-index: 5;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  background: rgba(255,255,255,.82);
-  color: #34405a;
-  font-weight: 700;
-}
-
-.loading.show {
-  display: flex;
-}
-
-.spinner {
-  width: 28px;
-  height: 28px;
-  margin-right: 10px;
-  border: 3px solid #dce2ef;
-  border-top-color: var(--accent);
-  border-radius: 50%;
-  animation: spin .8s linear infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-.error {
-  display: none;
-  position: absolute;
-  inset: 0;
-  z-index: 6;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  padding: 30px;
-  background: white;
-  color: #d83c4a;
-}
-
-.error.show {
-  display: flex;
-}
-
-.error-box {
-  max-width: 500px;
-}
-
-.fullscreen {
-  position: fixed !important;
-  inset: 0;
-  z-index: 9999;
-  margin: 0;
-  border-radius: 0;
-  background: white;
-}
-
-.fullscreen .preview-wrap {
-  height: calc(100vh - 48px);
-}
-
-.footer {
-  padding: 18px 0 4px;
-  text-align: center;
-  color: var(--muted);
-  font-size: 12px;
-}
-
-@media (max-width: 700px) {
-  .app {
-    padding: 14px;
-  }
-
-  .header {
-    align-items: flex-start;
-  }
-
-  .badge {
-    display: none;
-  }
-
-  .drop-zone {
-    padding: 28px 14px;
-  }
-
-  .viewer {
-    min-height: 500px;
-  }
-
-  .preview-wrap {
-    min-height: 420px;
-    height: 65vh;
-  }
-
-  .preview-header {
-    height: auto;
-    padding: 10px;
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .preview-controls {
-    width: 100%;
-    justify-content: flex-end;
-  }
-}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Multi HTML Viewer</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f4f7fb;
+      --surface: #ffffff;
+      --surface-2: #eef3f9;
+      --text: #172033;
+      --muted: #657089;
+      --border: #d9e0eb;
+      --accent: #2563eb;
+      --accent-soft: #dbeafe;
+      --danger: #dc2626;
+      --shadow: 0 12px 35px rgba(30, 50, 90, .10);
+    }
+    [data-theme="dark"] {
+      color-scheme: dark;
+      --bg: #101522;
+      --surface: #182132;
+      --surface-2: #222e43;
+      --text: #edf3ff;
+      --muted: #a9b5c9;
+      --border: #34425b;
+      --accent: #70a1ff;
+      --accent-soft: #203c70;
+      --danger: #ff7272;
+      --shadow: 0 12px 35px rgba(0, 0, 0, .28);
+    }
+    @media (prefers-color-scheme: dark) {
+      [data-theme="system"] {
+        color-scheme: dark;
+        --bg: #101522; --surface: #182132; --surface-2: #222e43; --text: #edf3ff;
+        --muted: #a9b5c9; --border: #34425b; --accent-soft: #203c70; --danger: #ff7272;
+        --shadow: 0 12px 35px rgba(0, 0, 0, .28);
+      }
+    }
+    html { font-size: var(--ui-font-size, 16px); }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background: linear-gradient(135deg, var(--bg), var(--surface-2));
+    }
+    .app { max-width: 1400px; margin: 0 auto; padding: 24px; }
+    header { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
+    h1 { margin: 0; font-size: clamp(1.35rem, 3vw, 2rem); }
+    .subtitle { margin: 5px 0 0; color: var(--muted); font-size: .92rem; }
+    .header-actions, .toolbar, .file-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .theme-panel { margin-top: 10px; padding: 12px; display: none; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface-2); }
+    .theme-panel.open { display: grid; }
+    .theme-field { display: grid; gap: 5px; color: var(--muted); font-size: .78rem; }
+    .theme-field select, .theme-field input { width: 100%; min-width: 0; }
+    .theme-field input[type="color"] { height: 40px; padding: 3px; cursor: pointer; }
+    [data-density="compact"] .app { padding-top: 14px; padding-bottom: 14px; }
+    [data-density="compact"] .workspace { margin-top: 10px; }
+    [data-density="compact"] .workspace-top, [data-density="compact"] .toolbar { padding: 7px 9px; }
+    button, .button {
+      border: 1px solid var(--border); border-radius: 9px; padding: 9px 13px;
+      color: var(--text); background: var(--surface); cursor: pointer; font: inherit;
+      transition: .18s ease; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
+    }
+    button:hover, .button:hover { border-color: var(--accent); transform: translateY(-1px); }
+    button.primary { color: white; border-color: var(--accent); background: var(--accent); }
+    button.danger { color: var(--danger); }
+    button:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+    .drop-zone {
+      border: 2px dashed var(--border); border-radius: 14px; background: color-mix(in srgb, var(--surface) 88%, transparent);
+      padding: 22px; text-align: center; box-shadow: var(--shadow); transition: .18s ease;
+    }
+    .drop-zone.dragover { border-color: var(--accent); background: var(--accent-soft); }
+    .drop-zone p { margin: 7px 0 14px; color: var(--muted); }
+    #fileInput { display: none; }
+    .workspace { margin-top: 18px; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow); overflow: hidden; }
+    .workspace-top { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; padding: 12px; border-bottom: 1px solid var(--border); }
+    .tabs { display: flex; gap: 7px; flex: 1; min-width: 250px; overflow-x: auto; padding-bottom: 2px; }
+    .tab { white-space: nowrap; max-width: 210px; overflow: hidden; text-overflow: ellipsis; }
+    .tab.active { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+    .tab .close { color: var(--muted); font-weight: 700; padding: 0 2px; }
+    .toolbar { padding: 10px 12px; border-bottom: 1px solid var(--border); }
+    .toolbar input { flex: 1; min-width: 190px; }
+    input, textarea {
+      width: 100%; border: 1px solid var(--border); border-radius: 9px; padding: 10px 12px;
+      color: var(--text); background: var(--surface-2); font: inherit; outline: none;
+    }
+    input:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent); }
+    .status { color: var(--muted); font-size: .85rem; margin-left: auto; }
+    .viewer-wrap { padding: 12px; }
+    .preview-controls { display: flex; gap: 6px; align-items: center; }
+    .preview-controls select { width: auto; min-width: 120px; }
+    iframe { display: block; width: 100%; height: min(70vh, 760px); min-height: 430px; border: 1px solid var(--border); border-radius: 9px; background: white; transition: width .2s ease, height .2s ease; }
+    .viewer-wrap.fullscreen { position: fixed; inset: 0; z-index: 1000; padding: 18px; background: var(--bg); }
+    .viewer-wrap.fullscreen iframe { height: calc(100vh - 36px); min-height: 0; }
+    .viewer-wrap.fullscreen textarea.source { height: calc(100vh - 36px); min-height: 0; }
+    .device-mobile iframe { width: 390px; max-width: 100%; margin: 0 auto; }
+    .device-tablet iframe { width: 768px; max-width: 100%; margin: 0 auto; }
+    textarea.source { display: none; min-height: 430px; resize: vertical; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: .88rem; line-height: 1.5; }
+    .empty { text-align: center; padding: 70px 20px; color: var(--muted); }
+    .empty strong { display: block; color: var(--text); font-size: 1.1rem; margin-bottom: 6px; }
+    .match { color: var(--accent); font-weight: 700; }
+    @media (max-width: 700px) {
+      .app { padding: 14px; }
+      header { align-items: flex-start; flex-direction: column; }
+      .header-actions { width: 100%; }
+      .header-actions button { flex: 1; justify-content: center; }
+      .workspace-top { padding: 9px; }
+      .toolbar button { flex: 1; justify-content: center; }
+      iframe { min-height: 58vh; }
+    }
+  </style>
 </head>
-
 <body>
+  <main class="app">
+    <header>
+      <div>
+        <h1>Multi HTML Viewer</h1>
+        <p class="subtitle">Preview, inspect and manage multiple HTML files in your browser.</p>
+      </div>
+      <div class="header-actions">
+        <button id="restoreBtn" title="Restore files saved in this browser">↻ Restore saved</button>
+        <button id="clearBtn" class="danger" title="Remove all open files">✕ Clear all</button>
+        <button id="themeBtn" title="Toggle dark mode">☾ Dark mode</button>
+        <button id="customizeBtn" title="Customize appearance">⚙ Customize</button>
+      </div>
+      <div class="theme-panel" id="themePanel" aria-label="Theme customization">
+        <label class="theme-field">Theme
+          <select id="themeSelect"><option value="light">Light</option><option value="dark">Dark</option><option value="system">System</option></select>
+        </label>
+        <label class="theme-field">Accent color
+          <input id="accentColor" type="color" value="#2563eb" aria-label="Accent color">
+        </label>
+        <label class="theme-field">Font size
+          <select id="fontSizeSelect"><option value="14px">Small</option><option value="16px" selected>Default</option><option value="18px">Large</option><option value="20px">Extra large</option></select>
+        </label>
+        <label class="theme-field">Layout density
+          <select id="densitySelect"><option value="comfortable">Comfortable</option><option value="compact">Compact</option></select>
+        </label>
+      </div>
+    </header>
 
-<div class="app">
+    <section class="drop-zone" id="dropZone">
+      <div style="font-size:2rem">📂</div>
+      <strong>Drop HTML files here</strong>
+      <p>or select multiple .html / .htm files from your device</p>
+      <label class="button primary" for="fileInput">Choose HTML files</label>
+      <input type="file" id="fileInput" accept=".html,.htm,text/html" multiple>
+    </section>
 
-  <header class="header">
-    <div class="logo-area">
-      <h1>📄 Multi HTML File Viewer</h1>
-      <p>Open and preview multiple HTML files directly in your browser.</p>
-    </div>
-
-    <div class="badge">
-      ⚡ Local Preview
-    </div>
-  </header>
-
-  <section
-    class="drop-zone"
-    id="dropZone"
-    tabindex="0"
-  >
-    <div class="upload-icon">📂</div>
-
-    <h2>Drop HTML files here</h2>
-
-    <p>
-      Drag & drop your .html / .htm files here,
-      or choose files from your device.
-    </p>
-
-    <label class="btn" for="fileInput">
-      Choose HTML Files
-    </label>
-
-    <input
-      id="fileInput"
-      class="file-input"
-      type="file"
-      accept=".html,.htm,text/html"
-      multiple
-    >
-  </section>
-
-  <div class="toolbar">
-
-    <div class="toolbar-left">
-      <span class="file-count" id="fileCount">
-        No files selected
-      </span>
-
-      <button
-        class="btn secondary"
-        id="addMoreBtn"
-        type="button"
-      >
-        ＋ Add More
-      </button>
-    </div>
-
-    <div class="toolbar-right">
-
-      <button
-        class="btn danger"
-        id="clearBtn"
-        type="button"
-      >
-        Clear All
-      </button>
-
-    </div>
-
-  </div>
-
-  <section class="viewer" id="viewer">
-
-    <div class="tabs" id="tabs"></div>
-
-    <div class="preview-header">
-
-      <div class="file-info">
-        <span>🌐</span>
-
-        <div>
-          <div class="file-title" id="fileTitle">
-            No file selected
-          </div>
-
-          <div class="file-size" id="fileSize">
-            —
-          </div>
+    <section class="workspace" aria-label="HTML viewer workspace">
+      <div class="workspace-top">
+        <div class="tabs" id="tabs" role="tablist"></div>
+        <div class="file-actions">
+          <button id="newBtn" class="primary">＋ Add files</button>
         </div>
       </div>
-
-      <div class="preview-controls">
-
-        <button
-          class="small-btn"
-          id="zoomOut"
-          type="button"
-          title="Zoom out"
-        >
-          −
-        </button>
-
-        <span
-          class="zoom-value"
-          id="zoomValue"
-        >
-          100%
-        </span>
-
-        <button
-          class="small-btn"
-          id="zoomIn"
-          type="button"
-          title="Zoom in"
-        >
-          ＋
-        </button>
-
-        <button
-          class="small-btn"
-          id="resetZoom"
-          type="button"
-        >
-          Reset
-        </button>
-
-        <button
-          class="small-btn"
-          id="fullscreenBtn"
-          type="button"
-        >
-          ⛶ Fullscreen
-        </button>
-
-      </div>
-    </div>
-
-    <div class="preview-wrap" id="previewWrap">
-
-      <div class="empty-state" id="emptyState">
-        <div>
-          <div class="empty-icon">🖥️</div>
-
-          <h2>Ready to Preview</h2>
-
-          <p>
-            Select one or more HTML files to start viewing them.
-            Everything is processed locally in your browser.
-          </p>
+      <div class="toolbar">
+        <input id="searchInput" type="search" placeholder="Search in current HTML source…" disabled>
+        <button id="viewBtn" disabled>〈/〉 Source</button>
+        <button id="downloadBtn" disabled>⇩ Download</button>
+        <button id="reloadBtn" disabled>↻ Reload</button>
+        <div class="preview-controls" title="Preview device size">
+          <select id="deviceSelect" aria-label="Preview device size">
+            <option value="desktop">Desktop</option>
+            <option value="tablet">Tablet 768px</option>
+            <option value="mobile">Mobile 390px</option>
+          </select>
+          <button id="fullscreenBtn" disabled>⛶ Fullscreen</button>
+          <button id="shortcutsBtn" title="Show keyboard shortcuts">⌨ Shortcuts</button>
         </div>
+        <span class="status" id="status">No file selected</span>
       </div>
-
-      <div class="loading" id="loading">
-        <div class="spinner"></div>
-        Loading preview...
+      <div class="viewer-wrap" id="viewerWrap">
+        <div class="empty" id="emptyState"><strong>Your viewer is ready</strong>Select or drop HTML files to start previewing.</div>
+        <iframe id="viewer" title="HTML preview" sandbox="allow-scripts allow-forms"></iframe>
+        <textarea id="source" class="source" spellcheck="false" aria-label="HTML source code"></textarea>
       </div>
+    </section>
+  </main>
 
-      <div class="error" id="error">
-        <div class="error-box">
-          <h2>⚠️ Preview Error</h2>
-          <p id="errorMessage">
-            Unable to display this HTML file.
-          </p>
-        </div>
-      </div>
+  <script>
+    const input = document.getElementById('fileInput');
+    const dropZone = document.getElementById('dropZone');
+    const tabs = document.getElementById('tabs');
+    const viewer = document.getElementById('viewer');
+    const source = document.getElementById('source');
+    const emptyState = document.getElementById('emptyState');
+    const status = document.getElementById('status');
+    const searchInput = document.getElementById('searchInput');
+    const viewBtn = document.getElementById('viewBtn');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const reloadBtn = document.getElementById('reloadBtn');
+    const viewerWrap = document.getElementById('viewerWrap');
+    const deviceSelect = document.getElementById('deviceSelect');
+    const fullscreenBtn = document.getElementById('fullscreenBtn');
+    const shortcutsBtn = document.getElementById('shortcutsBtn');
+    const themeBtn = document.getElementById('themeBtn');
+    const customizeBtn = document.getElementById('customizeBtn');
+    const themePanel = document.getElementById('themePanel');
+    const themeSelect = document.getElementById('themeSelect');
+    const accentColor = document.getElementById('accentColor');
+    const fontSizeSelect = document.getElementById('fontSizeSelect');
+    const densitySelect = document.getElementById('densitySelect');
+    const files = [];
+    let active = -1;
+    let sourceMode = false;
 
-      <iframe
-        id="previewFrame"
-        class="preview-frame"
-        title="HTML Preview"
-        sandbox="allow-scripts allow-forms allow-modals allow-popups"
-        style="display:none;"
-      ></iframe>
+    const escapeHtml = text => text.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+    const current = () => files[active];
 
-    </div>
-
-  </section>
-
-  <div class="footer">
-    Multi HTML File Viewer · Runs entirely in your browser
-  </div>
-
-</div>
-
-<script>
-"use strict";
-
-const fileInput = document.getElementById("fileInput");
-const addMoreBtn = document.getElementById("addMoreBtn");
-const clearBtn = document.getElementById("clearBtn");
-const dropZone = document.getElementById("dropZone");
-
-const tabs = document.getElementById("tabs");
-const fileCount = document.getElementById("fileCount");
-
-const fileTitle = document.getElementById("fileTitle");
-const fileSize = document.getElementById("fileSize");
-
-const previewFrame = document.getElementById("previewFrame");
-const previewWrap = document.getElementById("previewWrap");
-
-const emptyState = document.getElementById("emptyState");
-const loading = document.getElementById("loading");
-
-const error = document.getElementById("error");
-const errorMessage = document.getElementById("errorMessage");
-
-const zoomOut = document.getElementById("zoomOut");
-const zoomIn = document.getElementById("zoomIn");
-const resetZoom = document.getElementById("resetZoom");
-const zoomValue = document.getElementById("zoomValue");
-const fullscreenBtn = document.getElementById("fullscreenBtn");
-
-let files = [];
-let activeIndex = -1;
-let zoom = 100;
-
-function formatBytes(bytes) {
-  if (!Number.isFinite(bytes) || bytes < 0) {
-    return "—";
-  }
-
-  if (bytes === 0) {
-    return "0 Bytes";
-  }
-
-  const units = ["Bytes", "KB", "MB", "GB"];
-  const i = Math.min(
-    Math.floor(Math.log(bytes) / Math.log(1024)),
-    units.length - 1
-  );
-
-  return `${(bytes / Math.pow(1024, i)).toFixed(i === 0 ? 0 : 2)} ${units[i]}`;
-}
-
-function isHTMLFile(file) {
-  return /\.(html?|HTML?)$/.test(file.name);
-}
-
-function addFiles(fileList) {
-  const incoming = Array.from(fileList || [])
-    .filter(isHTMLFile);
-
-  if (!incoming.length) {
-    showError(
-      "Please select valid .html or .htm files."
-    );
-    return;
-  }
-
-  const existingKeys = new Set(
-    files.map(file => `${file.name}-${file.size}-${file.lastModified}`)
-  );
-
-  incoming.forEach(file => {
-    const key = `${file.name}-${file.size}-${file.lastModified}`;
-
-    if (!existingKeys.has(key)) {
-      files.push(file);
-      existingKeys.add(key);
+    function addFiles(fileList) {
+      Array.from(fileList).filter(f => /\.html?$/i.test(f.name) || f.type === 'text/html').forEach(file => {
+        const reader = new FileReader();
+        reader.onload = e => {
+          files.push({ name: file.name, content: e.target.result });
+          if (active === -1) active = 0;
+          render();
+          showFile(files.length - 1);
+          saveFiles();
+        };
+        reader.readAsText(file);
+      });
+      input.value = '';
     }
-  });
 
-  if (activeIndex === -1 && files.length) {
-    activeIndex = 0;
-  }
+    function render() {
+      tabs.innerHTML = '';
+      files.forEach((file, index) => {
+        const tab = document.createElement('button');
+        tab.className = `tab${index === active ? ' active' : ''}`;
+        tab.setAttribute('role', 'tab');
+        tab.title = file.name;
+        tab.innerHTML = `<span>${escapeHtml(file.name)}</span><span class="close" aria-label="Close ${escapeHtml(file.name)}">×</span>`;
+        tab.querySelector('.close').addEventListener('click', e => { e.stopPropagation(); closeFile(index); });
+        tab.addEventListener('click', () => showFile(index));
+        tabs.appendChild(tab);
+      });
+      const enabled = files.length > 0;
+      [searchInput, viewBtn, downloadBtn, reloadBtn, fullscreenBtn].forEach(el => el.disabled = !enabled);
+      emptyState.style.display = enabled ? 'none' : 'block';
+      if (!enabled) { viewer.style.display = 'none'; source.style.display = 'none'; status.textContent = 'No file selected'; }
+    }
 
-  renderTabs();
-  updateCount();
+    function showFile(index) {
+      if (!files[index]) return;
+      active = index;
+      sourceMode = false;
+      source.value = files[index].content;
+      viewer.srcdoc = files[index].content;
+      viewer.style.display = 'block';
+      source.style.display = 'none';
+      viewBtn.textContent = '〈/〉 Source';
+      status.textContent = `${files[index].name} · ${files[index].content.length.toLocaleString()} characters`;
+      render();
+    }
 
-  if (activeIndex >= 0) {
-    showFile(activeIndex);
-  }
-}
+    function closeFile(index) {
+      files.splice(index, 1);
+      if (!files.length) active = -1;
+      else if (active >= files.length) active = files.length - 1;
+      else if (index < active) active--;
+      saveFiles();
+      render();
+      if (active >= 0) showFile(active);
+    }
 
-function removeFile(index) {
-  if (index < 0 || index >= files.length) {
-    return;
-  }
+    function saveFiles() { localStorage.setItem('multiHtmlViewerFiles', JSON.stringify(files)); }
+    function restoreFiles() {
+      try {
+        const saved = JSON.parse(localStorage.getItem('multiHtmlViewerFiles') || '[]');
+        if (Array.isArray(saved)) { files.push(...saved.filter(f => f && f.name && typeof f.content === 'string')); if (files.length) { active = 0; render(); showFile(0); } }
+      } catch (_) { localStorage.removeItem('multiHtmlViewerFiles'); }
+    }
 
-  files.splice(index, 1);
-
-  if (!files.length) {
-    activeIndex = -1;
-    resetViewer();
-    renderTabs();
-    updateCount();
-    return;
-  }
-
-  if (activeIndex === index) {
-    activeIndex = Math.min(index, files.length - 1);
-    showFile(activeIndex);
-  } else if (index < activeIndex) {
-    activeIndex--;
-  }
-
-  renderTabs();
-  updateCount();
-}
-
-function clearAll() {
-  files = [];
-  activeIndex = -1;
-
-  fileInput.value = "";
-
-  resetViewer();
-  renderTabs();
-  updateCount();
-}
-
-function renderTabs() {
-  tabs.innerHTML = "";
-
-  files.forEach((file, index) => {
-    const tab = document.createElement("button");
-
-    tab.className =
-      "tab" +
-      (index === activeIndex ? " active" : "");
-
-    tab.type = "button";
-    tab.title = file.name;
-
-    const name = document.createElement("span");
-    name.className = "tab-name";
-    name.textContent = file.name;
-
-    const close = document.createElement("span");
-    close.className = "tab-close";
-    close.textContent = "×";
-    close.title = "Remove file";
-
-    close.addEventListener("click", event => {
-      event.stopPropagation();
-      removeFile(index);
+    input.addEventListener('change', e => addFiles(e.target.files));
+    document.getElementById('newBtn').addEventListener('click', () => input.click());
+    document.getElementById('restoreBtn').addEventListener('click', restoreFiles);
+    document.getElementById('clearBtn').addEventListener('click', () => { files.length = 0; active = -1; localStorage.removeItem('multiHtmlViewerFiles'); render(); });
+    reloadBtn.addEventListener('click', () => current() && (viewer.srcdoc = current().content));
+    deviceSelect.addEventListener('change', () => {
+      viewerWrap.classList.remove('device-mobile', 'device-tablet');
+      if (deviceSelect.value !== 'desktop') viewerWrap.classList.add(`device-${deviceSelect.value}`);
     });
-
-    tab.appendChild(name);
-    tab.appendChild(close);
-
-    tab.addEventListener("click", () => {
-      activeIndex = index;
-      renderTabs();
-      showFile(index);
+    function toggleFullscreen() {
+      if (!current()) return;
+      if (!document.fullscreenElement) {
+        viewerWrap.classList.add('fullscreen');
+        viewerWrap.requestFullscreen?.().catch(() => {});
+        fullscreenBtn.textContent = '⛶ Exit fullscreen';
+      } else {
+        document.exitFullscreen?.();
+      }
+    }
+    fullscreenBtn.addEventListener('click', toggleFullscreen);
+    document.addEventListener('fullscreenchange', () => {
+      if (!document.fullscreenElement) { viewerWrap.classList.remove('fullscreen'); fullscreenBtn.textContent = '⛶ Fullscreen'; }
     });
-
-    tabs.appendChild(tab);
-  });
-}
-
-function updateCount() {
-  if (!files.length) {
-    fileCount.textContent = "No files selected";
-    return;
-  }
-
-  fileCount.textContent =
-    `${files.length} file${files.length === 1 ? "" : "s"} selected`;
-}
-
-function showFile(index) {
-  if (!files[index]) {
-    return;
-  }
-
-  activeIndex = index;
-
-  const file = files[index];
-
-  fileTitle.textContent = file.name;
-  fileSize.textContent =
-    `${formatBytes(file.size)} · HTML`;
-
-  emptyState.style.display = "none";
-  error.classList.remove("show");
-
-  loading.classList.add("show");
-  previewFrame.style.display = "none";
-
-  const reader = new FileReader();
-
-  reader.onload = event => {
-    try {
-      const html = String(event.target.result || "");
-
-      previewFrame.srcdoc = html;
-
-      previewFrame.onload = () => {
-        loading.classList.remove("show");
-        previewFrame.style.display = "block";
-        applyZoom();
-      };
-
-      previewFrame.onerror = () => {
-        showError(
-          "The selected HTML file could not be rendered."
-        );
-      };
-
-    } catch (err) {
-      showError(
-        "An unexpected error occurred while rendering the file."
-      );
+    shortcutsBtn.addEventListener('click', () => alert('Keyboard shortcuts:\n\nCtrl/Cmd + O — Add HTML files\nCtrl/Cmd + F — Search\nCtrl/Cmd + S — Download current file\nCtrl/Cmd + W — Close current tab\nR — Reload preview\nF — Toggle fullscreen\nEsc — Exit fullscreen'));
+    document.addEventListener('keydown', e => {
+      const mod = e.ctrlKey || e.metaKey;
+      const tag = document.activeElement?.tagName;
+      if (mod && e.key.toLowerCase() === 'o') { e.preventDefault(); input.click(); }
+      else if (mod && e.key.toLowerCase() === 'f') { e.preventDefault(); searchInput.focus(); searchInput.select(); }
+      else if (mod && e.key.toLowerCase() === 's') { e.preventDefault(); downloadBtn.click(); }
+      else if (mod && e.key.toLowerCase() === 'w' && current()) { e.preventDefault(); closeFile(active); }
+      else if (!mod && tag !== 'INPUT' && tag !== 'TEXTAREA' && e.key.toLowerCase() === 'r') reloadBtn.click();
+      else if (!mod && tag !== 'INPUT' && tag !== 'TEXTAREA' && e.key.toLowerCase() === 'f') toggleFullscreen();
+      else if (e.key === 'Escape' && document.fullscreenElement) document.exitFullscreen?.();
+    });
+    viewBtn.addEventListener('click', () => {
+      if (!current()) return;
+      sourceMode = !sourceMode;
+      viewer.style.display = sourceMode ? 'none' : 'block';
+      source.style.display = sourceMode ? 'block' : 'none';
+      viewBtn.textContent = sourceMode ? '▶ Preview' : '〈/〉 Source';
+      searchInput.placeholder = sourceMode ? 'Search in current HTML source…' : 'Search in current HTML source…';
+    });
+    downloadBtn.addEventListener('click', () => {
+      if (!current()) return;
+      const blob = new Blob([current().content], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = current().name; a.click(); URL.revokeObjectURL(url);
+    });
+    searchInput.addEventListener('input', () => {
+      const q = searchInput.value.trim().toLowerCase();
+      if (!current()) return;
+      const count = q ? current().content.toLowerCase().split(q).length - 1 : 0;
+      status.textContent = q ? `${current().name} · ${count} match${count === 1 ? '' : 'es'}` : `${current().name} · ${current().content.length.toLocaleString()} characters`;
+    });
+    ['dragenter', 'dragover'].forEach(type => dropZone.addEventListener(type, e => { e.preventDefault(); dropZone.classList.add('dragover'); }));
+    ['dragleave', 'drop'].forEach(type => dropZone.addEventListener(type, e => { e.preventDefault(); dropZone.classList.remove('dragover'); }));
+    dropZone.addEventListener('drop', e => addFiles(e.dataTransfer.files));
+    function updateThemeButton(theme) {
+      themeBtn.textContent = theme === 'dark' ? '☀ Light mode' : theme === 'system' ? '◐ System theme' : '☾ Dark mode';
     }
-  };
-
-  reader.onerror = () => {
-    showError(
-      "The browser could not read this file."
-    );
-  };
-
-  reader.readAsText(file);
-}
-
-function resetViewer() {
-  fileTitle.textContent = "No file selected";
-  fileSize.textContent = "—";
-
-  previewFrame.srcdoc = "";
-  previewFrame.style.display = "none";
-
-  emptyState.style.display = "flex";
-  loading.classList.remove("show");
-  error.classList.remove("show");
-
-  zoom = 100;
-  applyZoom();
-}
-
-function showError(message) {
-  loading.classList.remove("show");
-  previewFrame.style.display = "none";
-  emptyState.style.display = "none";
-
-  errorMessage.textContent = message;
-  error.classList.add("show");
-}
-
-function applyZoom() {
-  zoom = Math.max(50, Math.min(200, zoom));
-
-  zoomValue.textContent = `${zoom}%`;
-
-  if (zoom === 100) {
-    previewFrame.style.transform = "none";
-    previewFrame.style.width = "100%";
-    previewFrame.style.height = "100%";
-  } else {
-    previewFrame.style.transform = `scale(${zoom / 100})`;
-    previewFrame.style.width = `${10000 / zoom}%`;
-    previewFrame.style.height = `${10000 / zoom}%`;
-  }
-}
-
-function enterFullscreen() {
-  const viewer = document.getElementById("viewer");
-
-  if (!document.fullscreenElement) {
-    if (viewer.requestFullscreen) {
-      viewer.requestFullscreen();
-    } else {
-      viewer.classList.add("fullscreen");
+    function applyTheme(theme, persist = true) {
+      document.documentElement.dataset.theme = theme;
+      themeSelect.value = theme;
+      updateThemeButton(theme);
+      if (persist) localStorage.setItem('multiHtmlViewerTheme', theme);
     }
-  } else {
-    document.exitFullscreen();
-  }
-}
-
-fileInput.addEventListener("change", event => {
-  addFiles(event.target.files);
-});
-
-addMoreBtn.addEventListener("click", () => {
-  fileInput.click();
-});
-
-clearBtn.addEventListener("click", clearAll);
-
-dropZone.addEventListener("dragover", event => {
-  event.preventDefault();
-  dropZone.classList.add("dragover");
-});
-
-dropZone.addEventListener("dragleave", () => {
-  dropZone.classList.remove("dragover");
-});
-
-dropZone.addEventListener("drop", event => {
-  event.preventDefault();
-  dropZone.classList.remove("dragover");
-
-  addFiles(event.dataTransfer.files);
-});
-
-dropZone.addEventListener("keydown", event => {
-  if (event.key === "Enter" || event.key === " ") {
-    event.preventDefault();
-    fileInput.click();
-  }
-});
-
-zoomOut.addEventListener("click", () => {
-  zoom -= 10;
-  applyZoom();
-});
-
-zoomIn.addEventListener("click", () => {
-  zoom += 10;
-  applyZoom();
-});
-
-resetZoom.addEventListener("click", () => {
-  zoom = 100;
-  applyZoom();
-});
-
-fullscreenBtn.addEventListener("click", enterFullscreen);
-
-document.addEventListener("fullscreenchange", () => {
-  if (document.fullscreenElement) {
-    fullscreenBtn.textContent = "✕ Exit Fullscreen";
-  } else {
-    fullscreenBtn.textContent = "⛶ Fullscreen";
-  }
-});
-
-document.addEventListener("keydown", event => {
-  if (event.key === "Escape" && document.fullscreenElement) {
-    document.exitFullscreen();
-  }
-});
-
-window.addEventListener("error", event => {
-  console.error("Application error:", event.error);
-});
-</script>
-
+    function applyCustomization() {
+      const root = document.documentElement;
+      root.style.setProperty('--accent', accentColor.value);
+      root.style.setProperty('--accent-soft', `${accentColor.value}22`);
+      root.style.setProperty('--ui-font-size', fontSizeSelect.value);
+      root.dataset.density = densitySelect.value;
+      localStorage.setItem('multiHtmlViewerAccent', accentColor.value);
+      localStorage.setItem('multiHtmlViewerFontSize', fontSizeSelect.value);
+      localStorage.setItem('multiHtmlViewerDensity', densitySelect.value);
+    }
+    themeBtn.addEventListener('click', () => applyTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'));
+    customizeBtn.addEventListener('click', () => themePanel.classList.toggle('open'));
+    themeSelect.addEventListener('change', () => applyTheme(themeSelect.value));
+    [accentColor, fontSizeSelect, densitySelect].forEach(control => control.addEventListener('input', applyCustomization));
+    const savedTheme = localStorage.getItem('multiHtmlViewerTheme') || 'system';
+    accentColor.value = localStorage.getItem('multiHtmlViewerAccent') || '#2563eb';
+    fontSizeSelect.value = localStorage.getItem('multiHtmlViewerFontSize') || '16px';
+    densitySelect.value = localStorage.getItem('multiHtmlViewerDensity') || 'comfortable';
+    applyTheme(savedTheme, false);
+    applyCustomization();
+    render();
+  </script>
 </body>
 </html>
-```
